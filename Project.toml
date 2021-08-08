@@ -3,6 +3,9 @@ uuid = "45b6eadc-5e60-40a2-8828-8c65d5497b37"
 authors = ["Max Freudenberg"]
 version = "0.1.0"
 
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+
 [compat]
 julia = "1"
 

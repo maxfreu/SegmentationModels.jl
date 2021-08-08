@@ -1,5 +1,9 @@
 module SegmentationModels
 
-# Write your package code here.
+using Flux
+
+include("unet.jl")
+
+export UNet
 
 end
