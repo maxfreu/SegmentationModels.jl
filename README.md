@@ -4,7 +4,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://maxfreu.github.io/SegmentationModels.jl/dev)
 [![Build Status](https://github.com/maxfreu/SegmentationModels.jl/workflows/CI/badge.svg)](https://github.com/maxfreu/SegmentationModels.jl/actions)
 
-The aim of this package is to create accomplish similar functionality to https://github.com/qubvel/segmentation_models.pytorch. Pull requests are very welcome.
+The aim of this package is to provide functionality similar to https://github.com/qubvel/segmentation_models.pytorch. Pull requests are very welcome.
 
 
 ## Supported Architectures
