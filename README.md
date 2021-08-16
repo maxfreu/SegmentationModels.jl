@@ -36,4 +36,4 @@ unet(data)
 
 ## ToDo
 - Add other segmentation architectures
-- Add option to change the number of input channels even for 
+- Add option to change the number of input channels
