@@ -6,9 +6,9 @@ function double_conv(in_channels, out_channels; activation=relu, bn_momentum=0.1
          )
 end
 
-struct UNetUpBlock
-    upsampling_op
-    conv_op
+struct UNetUpBlock{U,C}
+    upsampling_op::U
+    conv_op::C
 end
 
 Flux.@functor UNetUpBlock
@@ -32,18 +32,20 @@ end
 
 """
     UNet(in_channels::Integer=3, num_classes::Integer=1; init_channels::Integer=16, stages::Integer=4, final_activation=sigmoid)
+    UNet(m::Classifier; num_classes=1, decoder_channels=(16,32,64,128,256,512,1024), final_activation=sigmoid)
 
-Instantiate a [UNet](https://arxiv.org/pdf/1505.04597.pdf) with a given number of input channels and output classes.
-The inital number of convolution channels can be set and also the number of pooling operations (stages).
-The final activation of the segmentation head can also be supplied.
-The model applies two convolutions with relu activation and BatchNorm at each encoder or decoder stage.
-It doubles the number of convolution channels at each down-stage.
-Upsampling is done bilinear.
+There are two options to instantiate a [UNet](https://arxiv.org/pdf/1505.04597.pdf):
+
+1. with a given number of input channels and output classes
+2. with a classifier from Metalhead, either ResNet or VGG
+
+In the first case you get a UNet with a simple backbone using double convs, where you can specify the number of input channels.
+In the second case, you can only specify the number of classes.
 """
-struct UNet
-    encoder
-    decoder
-    segmentation_head
+struct UNet{E,D,S}
+    encoder::E
+    decoder::D
+    segmentation_head::S
 end
 
 Flux.@functor UNet
@@ -65,8 +67,20 @@ function UNet(in_channels::Integer=3, num_classes::Integer=1;
                     stages)
 
     segmentation_head = Conv((1,1), init_channels=>num_classes, final_activation)
-
+    
     UNet(encoder, decoder, segmentation_head)
+end
+
+function UNet(m::Classifier; num_classes=1, decoder_channels=(16,32,64,128,256,512,1024), final_activation=sigmoid)
+    enc = encoder(m)
+    enc_channels = encoder_channels(enc)
+    decoder_channels = decoder_channels[1:length(enc_channels)-1]
+    decoder_channels = (decoder_channels..., last(enc_channels))
+    
+    decoder = ntuple(i -> UNetUpBlock(decoder_channels[i+1], enc_channels[i], decoder_channels[i]), length(enc_channels)-1)[end:-1:1]
+    
+    segmentation_head = Conv((1,1), decoder_channels[1]=>num_classes, final_activation)
+    UNet(enc, decoder, segmentation_head)
 end
 
 function decode(ops::Tuple, ft::Tuple)
@@ -84,11 +98,10 @@ end
 
 function Base.show(io::IO, u::UNet)
     println(io, "UNet:")
-    println(io, "\n")
+    print(io, "\n")
     println(io, "Encoder:")
-    for l in u.encoder
-        println(io, l)
-    end
+    Flux._big_show(io, u.encoder)
+    
     println(io, "\n")
     println(io, "Decoder:")
     for l in u.decoder
