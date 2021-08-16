@@ -4,28 +4,36 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://maxfreu.github.io/SegmentationModels.jl/dev)
 [![Build Status](https://github.com/maxfreu/SegmentationModels.jl/workflows/CI/badge.svg)](https://github.com/maxfreu/SegmentationModels.jl/actions)
 
-This currently is a stub; there only is a simple, but flexible UNet implementation.
-
-The intention is to create a package with similar functionality to https://github.com/qubvel/segmentation_models.pytorch. Pull requests are very welcome.
+The aim of this package is to create accomplish similar functionality to https://github.com/qubvel/segmentation_models.pytorch. Pull requests are very welcome.
 
 
 ## Supported Architectures
 - UNet
 
 ## Supported Backbones
-- So far, only a custom one for the UNet
-- No pretrained weights
+- VGG
+- ResNet
+
+A subset of the classifiers in [Metalhead.jl](https://github.com/FluxML/Metalhead.jl) is supported. 
+Pre-training is supported as far as its supported there.
+
 
 ## Usage
 
-So far, you can only use a UNet. You can customize the number of stages (number of pooling operations), and the number of initial convolution channels. The number of channels gets doubled every stage. Every down and up stage involves two convolutions with BatchNorm.
-
 ```julia
+using CUDA
 using Flux
 using SegmentationModels
 
 data = rand(Float32, 256, 256, 8, 1) |> gpu
-unet = UNet(8,1; init_channels=16, stages=4) |> gpu
+unet = UNet(8,1; init_channels=16, stages=4) |> gpu  # returns unet with simple double-conv backbone as a placeholder
+
+# or
+unet = UNet(ResNet50(;pretrain=true); num_classes=1337) |> gpu
 
 unet(data)
 ```
+
+## ToDo
+- Add other segmentation architectures
+- Add option to change the number of input channels even for 
