@@ -6,17 +6,26 @@ jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
+    env:
+      JULIA_NUM_THREADS: ${{ matrix.julia-threads }}
     strategy:
       fail-fast: false
       matrix:
         version:
-          - '1.0'
-          - '1.5'
+          - '1'
           - 'nightly'
         os:
           - ubuntu-latest
         arch:
           - x64
+        julia-threads:
+          - '1'
+
+        include:
+          - os: ubuntu-latest
+            version: '1'
+            arch: x64
+            julia-threads: '2'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -35,25 +44,29 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
         with:
-          version: '1'
-      - run: |
-          julia --project=docs -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()'
-      - run: |
-          julia --project=docs -e '
-            using Documenter: doctest
-            using SegmentationModels
-            doctest(SegmentationModels)'
-      - run: julia --project=docs docs/make.jl
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+          file: lcov.info
+  #docs:
+  #  name: Documentation
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - uses: julia-actions/setup-julia@v1
+  #      with:
+  #        version: '1'
+  #    - run: |
+  #        julia --project=docs -e '
+  #          using Pkg
+  #          Pkg.develop(PackageSpec(path=pwd()))
+  #          Pkg.instantiate()'
+  #    - run: |
+  #        julia --project=docs -e '
+  #          using Documenter: doctest
+  #          using SegmentationModels
+  #          doctest(SegmentationModels)'
+  #    - run: julia --project=docs docs/make.jl
+  #      env:
+  #        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #        DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
