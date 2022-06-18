@@ -7,6 +7,7 @@ version = "0.1.0"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 Metalhead = "dbeba491-748d-5e0e-a39e-b530a07fa0cc"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 
 [compat]
 julia = "1"

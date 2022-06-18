@@ -38,9 +38,6 @@ There are two options to instantiate a [UNet](https://arxiv.org/pdf/1505.04597.p
 
 1. with a given number of input channels and output classes
 2. with a classifier from Metalhead, either ResNet or VGG
-
-In the first case you get a UNet with a simple backbone using double convs, where you can specify the number of input channels.
-In the second case, you can only specify the number of classes.
 """
 struct UNet{E,D,S}
     encoder::E
@@ -50,6 +47,12 @@ end
 
 Flux.@functor UNet
 
+# home-made version
+"""
+    UNet(in_channels::Integer=3, num_classes::Integer=1; init_channels::Integer=16, stages::Integer=4, final_activation=sigmoid)
+
+Instantiates a custom UNet which has double convolutions in each encoder and decoder stage.
+"""
 function UNet(in_channels::Integer=3, num_classes::Integer=1;
               init_channels::Integer=16,
               stages::Integer=4,
@@ -71,9 +74,26 @@ function UNet(in_channels::Integer=3, num_classes::Integer=1;
     UNet(encoder, decoder, segmentation_head)
 end
 
-function UNet(m::Classifier; num_classes=1, decoder_channels=(16,32,64,128,256,512,1024), final_activation=sigmoid)
-    enc = encoder(m)
-    enc_channels = encoder_channels(enc)
+
+"""
+    UNet(m::Classifier; num_classes=1, decoder_channels=(16,32,64,128,256,512,1024), final_activation=sigmoid, input_channels=3)
+
+Instantiates a UNet based on a given backbone.
+
+## Args
+    - m: The backbone, e.g. ResNet()
+    - num_classes: Number of output classes
+    - final_activation: Final activation layer
+    - input_channels: Number of input channels to the network. Changes the first convolution layer of the encoder. 
+      The original weight tensor is copied into the newly created one; the remaining weight are initalized in the default way.
+"""
+function UNet(m::Classifier;
+              num_classes=1,
+              decoder_channels=(16,32,64,128,256,512,1024),
+              final_activation=sigmoid,
+              input_channels=3)
+    enc = encoder(m, input_channels)
+    enc_channels = encoder_channels(enc, input_channels)
     decoder_channels = decoder_channels[1:length(enc_channels)-1]
     decoder_channels = (decoder_channels..., last(enc_channels))
     
