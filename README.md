@@ -17,7 +17,7 @@ The aim of this package is to provide functionality similar to https://github.co
 - MobileNetv1-3
 
 A subset of the classifiers in [Metalhead.jl](https://github.com/FluxML/Metalhead.jl) is supported. 
-Pre-training is supported as far as its supported there.
+Pre-training is supported as far as it's supported there.
 
 ## Supported Features
 - Using pretrained models
